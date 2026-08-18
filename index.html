@@ -26,7 +26,8 @@
       <p class="lede">
         Drag the slider below one stroke at a time. Watch for the point where
         a scribble becomes a shrimp — and the point, later, where it stops
-        being one again.
+        being one again. Then mark both, and see how your own judgement
+        compares with the artist's.
       </p>
 
       <section id="interact" aria-labelledby="interact-heading">
@@ -60,6 +61,26 @@
             ></p>
           </figcaption>
         </figure>
+
+        <div class="reveal">
+          <button type="button" id="mark-button" data-testid="mark-button">
+            Mark: it just became a shrimp
+          </button>
+          <p id="mark-status" data-testid="mark-status" aria-live="polite"></p>
+          <div id="comparison" class="comparison" data-testid="comparison" hidden>
+            <p id="comparison-text" data-testid="comparison-text"></p>
+            <div class="tick-track" aria-hidden="true">
+              <span class="tick tick-yours" id="tick-yours-becomes"></span>
+              <span class="tick tick-yours" id="tick-yours-stops"></span>
+              <span class="tick tick-baishi" id="tick-baishi-becomes"></span>
+              <span class="tick tick-baishi" id="tick-baishi-stops"></span>
+            </div>
+            <p class="tick-legend" aria-hidden="true">
+              <span class="tick-legend-item tick-legend-item-yours">your marks</span>
+              <span class="tick-legend-item tick-legend-item-baishi">baishi's own cut</span>
+            </p>
+          </div>
+        </div>
         <noscript>
           <p>
             This page's one interaction needs JavaScript. Without it, imagine
