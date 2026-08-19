@@ -78,34 +78,42 @@ export const STROKES: Stroke[] = [
     filled: true,
   },
   // -- 3. 用淡墨勾画腹部的节和尾部的形状 --
+  // Each divider spans the full width of the body (not a tick off to one
+  // side) — that's what makes the wash read as a jointed abdomen rather than
+  // a plain tapered blob.
   {
     id: "segment-line-1",
-    shape: { kind: "path", d: "M 388,148 Q 395,166 383,180" },
+    shape: { kind: "path", d: "M 388,128 Q 395,150 388,172" },
     width: 3,
     strokeOpacity: 0.55,
   },
   {
     id: "segment-line-2",
-    shape: { kind: "path", d: "M 305,192 Q 312,209 300,222" },
+    shape: { kind: "path", d: "M 305,180 Q 312,200 305,220" },
     width: 3,
     strokeOpacity: 0.55,
   },
   {
     id: "segment-line-3",
-    shape: { kind: "path", d: "M 222,208 Q 229,225 217,238" },
+    shape: { kind: "path", d: "M 225,210 Q 232,230 225,248" },
     width: 3,
     strokeOpacity: 0.55,
   },
+  // The fan opens from the body's actual tail tip (~124,152) rather than
+  // floating off to one side, so it reads as the tail flicking open rather
+  // than a stray tuft of hay.
   {
     id: "tail-shape",
     shape: {
       kind: "path",
-      d: "M 145,78 C 130,60 113,45 92,35 M 142,82 C 122,70 99,64 76,60 M 139,88 C 118,84 95,89 75,98",
+      d: "M 128,148 C 100,110 70,80 45,55 M 126,152 C 95,128 65,110 40,95 M 124,158 C 92,148 62,145 38,140 M 122,164 C 90,168 62,178 42,185",
     },
-    width: 3,
-    strokeOpacity: 0.55,
+    width: 2.5,
+    strokeOpacity: 0.6,
   },
   // -- 4. 浓墨画触角: two long dark whiskers, arcing outward --
+  // The second whisker runs nearly straight down, well clear of where the
+  // pincers reach forward, so the two pairs of dark lines don't tangle.
   {
     id: "antenna-1",
     shape: { kind: "path", d: "M 488,85 C 525,55 575,24 622,5" },
@@ -113,7 +121,7 @@ export const STROKES: Stroke[] = [
   },
   {
     id: "antenna-2",
-    shape: { kind: "path", d: "M 480,96 C 500,135 522,178 548,218" },
+    shape: { kind: "path", d: "M 483,100 C 495,150 500,205 495,255" },
     width: 2.5,
   },
   // -- 5. 画步足: pale walking legs, varied length, crossing, angle --
@@ -127,14 +135,14 @@ export const STROKES: Stroke[] = [
     strokeOpacity: 0.55,
   },
   // -- 6. 画钳（胸足）: dark angular pincers, folded joints --
-  // Each pincer is a bold arm reaching forward and down from the head, big
-  // enough on the canvas to read as claws rather than a scribble, ending in
-  // a small open hook.
+  // Each pincer reaches forward from the head at a shallow angle — the
+  // classic shrimp posture — ending in a small open hook, and stays clear of
+  // antenna-2's now-vertical drop.
   {
     id: "pincer-upper",
     shape: {
       kind: "path",
-      d: "M 494,100 C 530,112 558,142 568,182 C 570,192 564,197 556,191 M 568,182 L 588,196",
+      d: "M 494,100 C 525,98 555,110 575,135 C 582,144 578,152 568,148 M 575,135 L 592,140",
     },
     width: 3.2,
   },
@@ -142,7 +150,7 @@ export const STROKES: Stroke[] = [
     id: "pincer-lower",
     shape: {
       kind: "path",
-      d: "M 500,112 C 528,132 547,167 547,206 C 547,216 539,221 532,214 M 547,206 L 564,225",
+      d: "M 500,112 C 528,120 552,142 562,170 C 566,180 560,186 552,180 M 562,170 L 578,188",
     },
     width: 3.2,
   },
@@ -178,7 +186,7 @@ export const STROKES: Stroke[] = [
     id: "segment-highlight",
     shape: {
       kind: "path",
-      d: "M 386,155 L 385,172 M 303,199 L 302,215 M 220,215 L 219,231",
+      d: "M 388,135 L 387,165 M 305,185 L 304,215 M 225,215 L 224,245",
     },
     width: 5,
     fill: PAPER,
@@ -188,7 +196,7 @@ export const STROKES: Stroke[] = [
     id: "final-touch",
     shape: {
       kind: "path",
-      d: "M 141,84 C 127,72 106,66 87,68 M 138,90 C 119,93 100,101 86,111 M 500,90 C 515,96 528,109 535,123",
+      d: "M 130,150 C 105,135 78,128 52,128 M 500,90 C 515,96 528,109 535,123",
     },
     width: 1.8,
   },

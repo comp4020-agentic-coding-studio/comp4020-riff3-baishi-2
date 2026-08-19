@@ -3,6 +3,7 @@ import { labelFor, phaseFor, STROKES, SWEET_SPOT_MAX, UNLIKE_MAX } from "./strok
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const canvas = document.querySelector<SVGSVGElement>("#shrimp-canvas");
+const reference = document.querySelector<SVGSVGElement>("#shrimp-reference");
 const slider = document.querySelector<HTMLInputElement>("#stroke-slider");
 const countLabel = document.querySelector<HTMLElement>("#stroke-count");
 const phaseLabel = document.querySelector<HTMLElement>("#phase-label");
@@ -11,20 +12,24 @@ const markStatus = document.querySelector<HTMLElement>("#mark-status");
 const comparison = document.querySelector<HTMLElement>("#comparison");
 const comparisonText = document.querySelector<HTMLElement>("#comparison-text");
 
-if (canvas && slider && countLabel && phaseLabel && markButton && markStatus && comparison && comparisonText) {
-  // The body wash (stage 1) is drawn darkest through the middle, lighter at
-  // the head and tail — a single filled shape can't fake that gradient with
-  // a flat fill, so it references this gradient instead of currentColor.
+// The body wash (stage 1) is drawn darkest through the middle, lighter at
+// the head and tail — a single filled shape can't fake that gradient with a
+// flat fill, so it references this gradient instead of currentColor. Each
+// canvas gets its own copy under its own id, since a gradient defined in one
+// <svg> isn't reliably referenceable from a sibling <svg> across browsers.
+function addBodyInkGradient(svg: SVGSVGElement, gradientId: string) {
   const defs = document.createElementNS(SVG_NS, "defs");
   defs.innerHTML =
-    '<linearGradient id="bodyInk" x1="0" y1="0" x2="1" y2="1">' +
+    `<linearGradient id="${gradientId}" x1="0" y1="0" x2="1" y2="1">` +
     '<stop offset="0%" stop-color="#141414" stop-opacity="0.55" />' +
     '<stop offset="45%" stop-color="#141414" stop-opacity="0.9" />' +
     '<stop offset="100%" stop-color="#141414" stop-opacity="0.28" />' +
     "</linearGradient>";
-  canvas.appendChild(defs);
+  svg.appendChild(defs);
+}
 
-  const elements = STROKES.map((stroke) => {
+function buildStrokeElements(svg: SVGSVGElement, gradientId: string): SVGElement[] {
+  return STROKES.map((stroke) => {
     const el = document.createElementNS(
       SVG_NS,
       stroke.shape.kind === "circle" ? "circle" : "path",
@@ -36,7 +41,8 @@ if (canvas && slider && countLabel && phaseLabel && markButton && markStatus && 
       el.setAttribute("fill", stroke.fill ?? "currentColor");
     } else if (stroke.filled) {
       el.setAttribute("d", stroke.shape.d);
-      el.setAttribute("fill", stroke.fill ?? "currentColor");
+      const fill = stroke.id === "body-wash" ? `url(#${gradientId})` : (stroke.fill ?? "currentColor");
+      el.setAttribute("fill", fill);
       el.setAttribute("stroke", "none");
     } else {
       el.setAttribute("d", stroke.shape.d);
@@ -53,9 +59,22 @@ if (canvas && slider && countLabel && phaseLabel && markButton && markStatus && 
     if (stroke.offset) {
       el.setAttribute("transform", `translate(${stroke.offset.dx}, ${stroke.offset.dy})`);
     }
-    canvas.appendChild(el);
+    svg.appendChild(el);
     return el;
   });
+}
+
+// The reference panel just shows every stroke, once, so a visitor can hold
+// their own in-progress read of the drawing up against the finished piece —
+// no verdict attached, so the comparison is theirs to make.
+if (reference) {
+  addBodyInkGradient(reference, "bodyInkReference");
+  buildStrokeElements(reference, "bodyInkReference");
+}
+
+if (canvas && slider && countLabel && phaseLabel && markButton && markStatus && comparison && comparisonText) {
+  addBodyInkGradient(canvas, "bodyInk");
+  const elements = buildStrokeElements(canvas, "bodyInk");
 
   slider.max = String(STROKES.length);
 

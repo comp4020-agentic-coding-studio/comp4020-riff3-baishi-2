@@ -32,35 +32,52 @@
 
       <section id="interact" aria-labelledby="interact-heading">
         <h2 id="interact-heading">The drawing</h2>
-        <figure>
-          <svg
-            id="shrimp-canvas"
-            viewBox="0 0 640 300"
-            role="img"
-            aria-label="An ink drawing of a shrimp, built up stroke by stroke as the slider moves."
-          ></svg>
-          <figcaption class="controls">
-            <label for="stroke-slider">Strokes revealed</label>
-            <input
-              type="range"
-              id="stroke-slider"
-              min="0"
-              max="18"
-              value="0"
-              step="1"
-              data-testid="stroke-slider"
-            />
-            <div class="readout">
-              <span id="stroke-count" data-testid="stroke-count">0 / 16</span>
-            </div>
-            <p
-              id="phase-label"
-              class="sr-only"
-              data-testid="phase-label"
-              aria-live="polite"
-            ></p>
-          </figcaption>
-        </figure>
+        <div class="canvas-compare">
+          <figure class="canvas-figure">
+            <p class="canvas-label">Yours, stroke by stroke</p>
+            <svg
+              id="shrimp-canvas"
+              viewBox="0 0 640 300"
+              role="img"
+              aria-label="An ink drawing of a shrimp, built up stroke by stroke as the slider moves."
+            ></svg>
+            <figcaption class="controls">
+              <label for="stroke-slider">Strokes revealed</label>
+              <input
+                type="range"
+                id="stroke-slider"
+                min="0"
+                max="18"
+                value="0"
+                step="1"
+                data-testid="stroke-slider"
+              />
+              <div class="readout">
+                <span id="stroke-count" data-testid="stroke-count">0 / 18</span>
+              </div>
+              <p
+                id="phase-label"
+                class="sr-only"
+                data-testid="phase-label"
+                aria-live="polite"
+              ></p>
+            </figcaption>
+          </figure>
+
+          <figure class="canvas-figure canvas-figure-reference">
+            <p class="canvas-label">The finished piece</p>
+            <svg
+              id="shrimp-reference"
+              viewBox="0 0 640 300"
+              role="img"
+              aria-label="The same ink shrimp with all eighteen strokes in place."
+            ></svg>
+            <figcaption class="canvas-caption">
+              All eighteen strokes, side by side with your own. You be the
+              judge.
+            </figcaption>
+          </figure>
+        </div>
 
         <div class="reveal">
           <button type="button" id="mark-button" data-testid="mark-button">
