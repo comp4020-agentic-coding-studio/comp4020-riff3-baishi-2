@@ -12,6 +12,18 @@ const comparison = document.querySelector<HTMLElement>("#comparison");
 const comparisonText = document.querySelector<HTMLElement>("#comparison-text");
 
 if (canvas && slider && countLabel && phaseLabel && markButton && markStatus && comparison && comparisonText) {
+  // The body wash (stage 1) is drawn darkest through the middle, lighter at
+  // the head and tail — a single filled shape can't fake that gradient with
+  // a flat fill, so it references this gradient instead of currentColor.
+  const defs = document.createElementNS(SVG_NS, "defs");
+  defs.innerHTML =
+    '<linearGradient id="bodyInk" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0%" stop-color="#141414" stop-opacity="0.55" />' +
+    '<stop offset="45%" stop-color="#141414" stop-opacity="0.9" />' +
+    '<stop offset="100%" stop-color="#141414" stop-opacity="0.28" />' +
+    "</linearGradient>";
+  canvas.appendChild(defs);
+
   const elements = STROKES.map((stroke) => {
     const el = document.createElementNS(
       SVG_NS,
@@ -22,13 +34,20 @@ if (canvas && slider && countLabel && phaseLabel && markButton && markStatus && 
       el.setAttribute("cy", String(stroke.shape.cy));
       el.setAttribute("r", String(stroke.shape.r));
       el.setAttribute("fill", stroke.fill ?? "currentColor");
+    } else if (stroke.filled) {
+      el.setAttribute("d", stroke.shape.d);
+      el.setAttribute("fill", stroke.fill ?? "currentColor");
+      el.setAttribute("stroke", "none");
     } else {
       el.setAttribute("d", stroke.shape.d);
       el.setAttribute("fill", "none");
-      el.setAttribute("stroke", "currentColor");
+      el.setAttribute("stroke", stroke.fill ?? "currentColor");
       el.setAttribute("stroke-width", String(stroke.width));
       el.setAttribute("stroke-linecap", "round");
       el.setAttribute("stroke-linejoin", "round");
+      if (stroke.strokeOpacity !== undefined) {
+        el.setAttribute("stroke-opacity", String(stroke.strokeOpacity));
+      }
     }
     el.dataset.strokeId = stroke.id;
     if (stroke.offset) {

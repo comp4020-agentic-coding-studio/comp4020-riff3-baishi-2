@@ -3,6 +3,11 @@
 // separate from main.ts (which only touches the DOM) so the interaction's
 // actual contract — how many strokes, and which phase a count falls in — is a
 // plain function spec/assignment-1.test.ts can call directly.
+//
+// The stroke order follows the real nine-stage sequence a Qi Baishi shrimp is
+// built in: pale body wash, eyes and head ink, segment/tail outline, dark
+// antennae, pale walking legs, dark angular pincers, fine leg/whisker detail,
+// a second ink pass, then a last overall adjustment.
 
 export type StrokeShape =
   | { kind: "path"; d: string }
@@ -12,139 +17,192 @@ export interface Stroke {
   id: string;
   shape: StrokeShape;
   width: number;
+  // Circle fill, wash fill (when filled is true), or — for an unfilled line
+  // stroke — an override for the line colour itself (used once, to punch a
+  // paper-coloured highlight back through the ink).
   fill?: string;
-  // Offsets the whole stroke a few px, for the one stroke (body-outline)
-  // that needs to read as a second, over-traced line rather than sit
-  // exactly on top of the gesture it's duplicating.
+  // True for a solid ink-wash shape (fill, no visible outline) rather than a
+  // brush line (stroked, no fill) — the body wash and the two ink-block
+  // passes are washes; everything else is a line.
+  filled?: boolean;
+  // Pale ("淡墨") strokes are drawn at reduced opacity rather than a lighter
+  // colour, so they still read as the same ink under the same light.
+  strokeOpacity?: number;
+  // Offsets the whole stroke a few px, for strokes that need to sit just
+  // off the shape they're layered against rather than exactly on top of it.
   offset?: { dx: number; dy: number };
 }
 
-// Ordered from the gestural core a painter would lay down first to the
-// over-specified detail that stiffens the same subject into a diagram.
+const INK = "#141414";
+const PAPER = "#fbf8ef";
+
+// Ordered stage by stage, following the reference: 1 body wash, 2 eyes +
+// head ink, 3 segments + tail, 4 antennae, 5 legs, 6 pincers, 7 fine detail,
+// 8 ink adjustment, 9 final touch.
 export const STROKES: Stroke[] = [
-  // -- the gestural core (1-6): what a few loaded brush strokes can carry --
-  // A shrimp curls into a single C: head high on the right, one continuous
-  // sweep down through the belly and back up into a hooked tail flick at the
-  // left. That's one coherent curl, not a wave — a wave is what reads as a
-  // scribble instead of a curled body.
+  // -- 1. 淡墨画虾身: pale body wash, darkest through the middle --
   {
-    id: "body-main",
+    id: "body-wash",
     shape: {
       kind: "path",
-      d: "M 480,100 C 410,125 360,180 290,205 C 220,230 155,205 122,148 C 100,112 108,85 145,78",
+      d: "M 480,88 C 408,110 355,163 283,190 C 215,215 152,192 124,140 L 120,156 C 158,218 225,245 297,220 C 365,197 412,140 480,112 Z",
     },
-    width: 9,
+    width: 0,
+    fill: "url(#bodyInk)",
+    filled: true,
+  },
+  // -- 2. 点画眼睛，留出高光；画头胸部的墨块 --
+  // The eyes sit forward on the snout tip, ahead of the head-thorax block
+  // behind them, so the block's ink never covers the highlight gap between
+  // the two dots.
+  {
+    id: "eye-left",
+    shape: { kind: "circle", cx: 480, cy: 90, r: 3.2 },
+    width: 0,
+    fill: INK,
   },
   {
-    id: "head-rostrum",
-    shape: { kind: "path", d: "M 478,96 C 498,89 518,85 538,83" },
-    width: 5,
+    id: "eye-right",
+    shape: { kind: "circle", cx: 489, cy: 84, r: 3.2 },
+    width: 0,
+    fill: INK,
   },
+  {
+    id: "head-thorax-block",
+    shape: {
+      kind: "path",
+      d: "M 415,102 C 425,86 452,80 472,90 C 486,97 486,110 472,118 C 452,128 422,122 412,110 C 408,106 410,104 415,102 Z",
+    },
+    width: 0,
+    fill: INK,
+    filled: true,
+  },
+  // -- 3. 用淡墨勾画腹部的节和尾部的形状 --
+  {
+    id: "segment-line-1",
+    shape: { kind: "path", d: "M 388,148 Q 395,166 383,180" },
+    width: 3,
+    strokeOpacity: 0.55,
+  },
+  {
+    id: "segment-line-2",
+    shape: { kind: "path", d: "M 305,192 Q 312,209 300,222" },
+    width: 3,
+    strokeOpacity: 0.55,
+  },
+  {
+    id: "segment-line-3",
+    shape: { kind: "path", d: "M 222,208 Q 229,225 217,238" },
+    width: 3,
+    strokeOpacity: 0.55,
+  },
+  {
+    id: "tail-shape",
+    shape: {
+      kind: "path",
+      d: "M 145,78 C 130,60 113,45 92,35 M 142,82 C 122,70 99,64 76,60 M 139,88 C 118,84 95,89 75,98",
+    },
+    width: 3,
+    strokeOpacity: 0.55,
+  },
+  // -- 4. 浓墨画触角: two long dark whiskers, arcing outward --
   {
     id: "antenna-1",
-    shape: { kind: "path", d: "M 476,92 C 518,58 572,25 622,5" },
+    shape: { kind: "path", d: "M 488,85 C 525,55 575,24 622,5" },
     width: 2.5,
   },
   {
     id: "antenna-2",
-    shape: { kind: "path", d: "M 476,106 C 512,138 552,175 588,210" },
+    shape: { kind: "path", d: "M 480,96 C 500,135 522,178 548,218" },
     width: 2.5,
   },
+  // -- 5. 画步足: pale walking legs, varied length, crossing, angle --
   {
-    id: "eye",
-    shape: { kind: "circle", cx: 473, cy: 90, r: 4.5 },
-    width: 0,
-    fill: "currentColor",
-  },
-  {
-    id: "tail-fan-basic",
+    id: "walking-legs",
     shape: {
       kind: "path",
-      d: "M 145,78 L 170,58 M 142,82 L 162,72 M 139,87 L 152,100",
-    },
-    width: 3.5,
-  },
-  // -- the sweet spot (7-10): a little more life, still gesture --
-  {
-    id: "body-segment-1",
-    shape: { kind: "path", d: "M 385,145 Q 392,163 380,177" },
-    width: 3,
-  },
-  {
-    id: "body-segment-2",
-    shape: { kind: "path", d: "M 300,195 Q 307,212 295,225" },
-    width: 3,
-  },
-  {
-    id: "body-segment-3",
-    shape: { kind: "path", d: "M 215,213 Q 222,230 210,242" },
-    width: 3,
-  },
-  {
-    id: "leg-cluster-impression",
-    shape: {
-      kind: "path",
-      d: "M 270,200 L 260,220 M 245,208 L 236,227 M 220,213 L 211,231 M 195,213 L 187,231 M 170,205 L 163,222",
+      d: "M 270,200 L 260,222 M 245,208 L 236,229 M 220,213 L 211,233 M 195,213 L 187,231 M 170,205 L 163,223",
     },
     width: 2.5,
+    strokeOpacity: 0.55,
   },
-  // -- over-elaboration (11-16): every part accounted for, the life gone --
+  // -- 6. 画钳（胸足）: dark angular pincers, folded joints --
+  // Each pincer is a bold arm reaching forward and down from the head, big
+  // enough on the canvas to read as claws rather than a scribble, ending in
+  // a small open hook.
   {
-    id: "antenna-detail-ticks",
+    id: "pincer-upper",
     shape: {
       kind: "path",
-      d: "M 520,60 L 528,50 M 548,42 L 556,32 M 578,22 L 586,13",
+      d: "M 494,100 C 530,112 558,142 568,182 C 570,192 564,197 556,191 M 568,182 L 588,196",
+    },
+    width: 3.2,
+  },
+  {
+    id: "pincer-lower",
+    shape: {
+      kind: "path",
+      d: "M 500,112 C 528,132 547,167 547,206 C 547,216 539,221 532,214 M 547,206 L 564,225",
+    },
+    width: 3.2,
+  },
+  // -- 7. 补画细足和须的穿插: fine legs and whisker interweaving --
+  {
+    id: "fine-legs",
+    shape: {
+      kind: "path",
+      d: "M 350,175 L 342,194 M 325,185 L 317,204 M 300,196 L 292,214",
+    },
+    width: 1.8,
+  },
+  {
+    id: "whisker-detail",
+    shape: {
+      kind: "path",
+      d: "M 520,55 L 528,45 M 546,39 L 554,29 M 573,23 L 581,13",
     },
     width: 1.5,
   },
+  // -- 8. 调整墨色: darken the head/thorax again, keep the segments open --
   {
-    id: "tail-fan-full",
+    id: "ink-deepen-head",
     shape: {
       kind: "path",
-      d: "M 146,76 L 178,50 M 144,79 L 170,60 M 142,82 L 160,70 M 140,85 L 150,92 M 138,89 L 142,108 M 136,93 L 136,115",
+      d: "M 420,104 C 428,92 450,87 466,95 C 477,101 477,110 467,116 C 450,124 428,120 418,110 C 415,108 417,106 420,104 Z",
     },
-    width: 2.5,
-  },
-  {
-    id: "leg-cluster-full",
-    shape: {
-      kind: "path",
-      d: "M 350,175 L 342,196 M 325,188 L 317,208 M 300,198 L 292,217 M 275,205 L 267,224 M 250,210 L 242,228 M 225,213 L 217,231 M 200,212 L 193,229 M 175,206 L 169,222 M 150,195 L 145,210",
-    },
-    width: 2,
-  },
-  {
-    id: "body-outline",
-    shape: {
-      kind: "path",
-      d: "M 480,100 C 410,125 360,180 290,205 C 220,230 155,205 122,148 C 100,112 108,85 145,78",
-    },
-    width: 1.5,
-    offset: { dx: 6, dy: 7 },
-  },
-  {
-    id: "shading-hatch",
-    shape: {
-      kind: "path",
-      d: "M 250,190 L 260,200 M 270,183 L 280,193 M 290,175 L 300,185 M 310,165 L 320,175 M 330,155 L 340,165 M 350,145 L 360,155",
-    },
-    width: 1.2,
-  },
-  {
-    id: "eye-detail",
-    shape: { kind: "circle", cx: 474.5, cy: 88.5, r: 1.5 },
     width: 0,
-    fill: "#f5efe1",
+    fill: INK,
+    filled: true,
+  },
+  {
+    id: "segment-highlight",
+    shape: {
+      kind: "path",
+      d: "M 386,155 L 385,172 M 303,199 L 302,215 M 220,215 L 219,231",
+    },
+    width: 5,
+    fill: PAPER,
+  },
+  // -- 9. 整体调整: last whiskers and legs settle into place --
+  {
+    id: "final-touch",
+    shape: {
+      kind: "path",
+      d: "M 141,84 C 127,72 106,66 87,68 M 138,90 C 119,93 100,101 86,111 M 500,90 C 515,96 528,109 535,123",
+    },
+    width: 1.8,
   },
 ];
 
 export type Phase = "unlike" | "sweet-spot" | "too-like";
 
-// Below this many strokes, nothing on the canvas commits to being a shrimp.
-export const UNLIKE_MAX = 3;
-// Through this many, it reads as a shrimp without over-explaining itself.
-// Above it, every part has been individually accounted for.
-export const SWEET_SPOT_MAX = 10;
+// Below this many strokes, it's a wash, eyes, segments and a tail curl —
+// evocative brushwork, but nothing has committed to being a shrimp until the
+// antennae and legs both land.
+export const UNLIKE_MAX = 10;
+// Through this many, it's alive and unmistakable — legs, pincers, antennae,
+// nothing more. Above it, every last leg and whisker gets accounted for.
+export const SWEET_SPOT_MAX = 13;
 
 export function phaseFor(count: number, total: number = STROKES.length): Phase {
   const clamped = Math.max(0, Math.min(count, total));
